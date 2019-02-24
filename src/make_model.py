@@ -62,7 +62,7 @@ def merge_types(schema):
     return types
          
 def merge_properties(schema):
-    properties = []
+    properties = {}
     
     schemas = schema.get('anyOf', []) or \
         schema.get('allOf', []) or \
@@ -71,7 +71,11 @@ def merge_properties(schema):
     
     for schema in schemas:
         if 'properties' in schema:
-            properties += schema['properties']
+            for prop in schema['properties']:
+                try:
+                    properties.update(prop)
+                except:
+                    raise
             
     return properties
     
