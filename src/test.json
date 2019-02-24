@@ -1,0 +1,54 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "required": [
+        "shipping_address"
+    ],
+    "type": "object",
+    "properties": {
+        "billing_address": {
+            "required": [
+                "street_address",
+                "city",
+                "state"
+            ],
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "street_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "shipping_address": {
+            "required": [
+                "street_address",
+                "city",
+                "state"
+            ],
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "street_address": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "id": "test_schema.json"
+}
