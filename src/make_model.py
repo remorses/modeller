@@ -33,13 +33,13 @@ def make_model(
     
     data_types = merge_types(schema)
     
-    print(data_types)
+    # print(data_types)
     
     maker = fallback(
         *[lambda: switch[data_type](schema) for data_type in data_types],
     )
     
-    print([switch[data_type](schema) for data_type in data_types])
+    # print([switch[data_type](schema) for data_type in data_types])
 
     # print([switch[data_type](schema)(name='') for data_type in data_types])
     
@@ -131,6 +131,8 @@ class Object:
     _schema = {}
 
     def __init__(self, **kwargs):
+    
+        print('__slot__', self.__slots__)
         
         schema = self._schema
         
