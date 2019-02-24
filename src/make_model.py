@@ -127,7 +127,7 @@ class Object:
     __iter__ = lambda self: iter([x for x in self.__slots__ if x in self])
     
     __contains__ = lambda self, x: x in self.__slots__ and fallback(
-            lambda: bool(self[x]) or True,
+            (lambda: bool(self[x]) or True, AttributeError),
             lambda: False
         )
     
