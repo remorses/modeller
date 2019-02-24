@@ -21,9 +21,11 @@ def make_model(
         # set_defaults=True # if schema has a default and property is not presetn it will use the default value
     )
     """
-    schema['title'] = schema.get('title', '').replace(' ','_') or name
+    if schema.get('title', '') == 'object':
+        schema['title'] = schema.get('title', '').replace(' ','_') or name
     
-    print('schema', schema)
+    
+    # print('schema', schema)
     
     switch = {
         'object':  make_object,
@@ -138,7 +140,7 @@ class Object:
 
     def __init__(self, **kwargs):
     
-        print('__slot__', self.__slots__)
+        # print('__slot__', self.__slots__)
         
         schema = self._schema
         
