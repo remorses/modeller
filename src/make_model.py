@@ -119,8 +119,8 @@ class Object:
 	__getitem__ = object.__getattribute__ 
 	
 	__delitem__ = object.__delattr__
-    
-    __slots__ = ()
+	
+	__slots__ = tuple()
     
     _schema = {}
 
