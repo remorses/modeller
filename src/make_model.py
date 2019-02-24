@@ -117,7 +117,7 @@ class Object:
         
         schema = self._schema
         
-        assert object_validation(schema, **kwargs)
+        assert Validator(schema).is_valid(kwargs)
         
         properties = schema.get('properties', {})
         
