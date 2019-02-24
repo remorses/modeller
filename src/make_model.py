@@ -45,7 +45,7 @@ def make_model(
     
     print(maker)
     
-    return maker()
+    return maker
     
 
 def merge_types(schema):
