@@ -73,6 +73,7 @@ def merge_properties(schema):
         if 'properties' in schema:
             for prop in schema['properties']:
                 try:
+                    print(prop)
                     merge(properties, prop)
                 except:
                     raise
