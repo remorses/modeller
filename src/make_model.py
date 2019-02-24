@@ -36,12 +36,12 @@ def make_model(
     print(data_types)
     
     maker = fallback(
-        *[switch[data_type] for data_type in data_types],
+        *[lambda: switch[data_type](schema) for data_type in data_types],
     )
     
     print(maker)
     
-    return maker(schema)
+    return maker()
     
 
 def merge_types(schema):
