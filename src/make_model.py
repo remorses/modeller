@@ -18,7 +18,11 @@ def make_model(
     )
     """
     schema['title'] = schema.get('title', '').replace(' ','_') or name
-     
+    
+    schema = schema.get('anyOf', {}) or \
+        schema.get('allOf', {}) or \
+        schema.get('oneOf', {}) or \
+        schema
 
     switch = {
         'object':  make_object,
@@ -46,11 +50,6 @@ make_object = lambda schema: type(
 )
 
 def make_object_attributes(schema):
-    schema = schema.get('anyOf', {}) or \
-        schema.get('allOf', {}) or \
-        schema.get('oneOf', {}) or \
-        schema
-        
     properties = schema.get('properties', {}) 
     required = schema.get('required', ())
     
@@ -101,7 +100,7 @@ def object_validation(schema, **kwargs):
         
     for k, v in kwargs.items():
     
-        if k not in properties:
+        if k not in schema.get('properties', {}):
             raise ValueError(
                     'The model "{0}" does not have an attribute "{1}"'.format(self.__class__.__name__, k))
                     
