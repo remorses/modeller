@@ -109,9 +109,9 @@ def make_object_attributes(schema):
 make_array = lambda schema: \
     lambda value: Validator(schema).is_valid(value) and \
     fallback(
-        lambda: [make_model(schema.get('items', {}))(**v) for v in value],
-        lambda: [make_model(schema.get('items', {}))(v) for v in value],
-    )()
+        (lambda: [make_model(schema.get('items', {}))(**v) for v in value], TypeError),
+        (lambda: [make_model(schema.get('items', {}))(v) for v in value],TypeError),
+    )
 
 
 def format_slots(self):
@@ -144,9 +144,9 @@ class Object:
         for k, v in kwargs.items():
                         
             fallback(
-                lambda: setattr(self, k, make_model(schema=properties[k])(**v)),
-                lambda: setattr(self, k, make_model(schema=properties[k])(v)),
-            )()
+                (lambda: setattr(self, k, make_model(schema=properties[k])(**v)), TypeError),
+                (lambda: setattr(self, k, make_model(schema=properties[k])(v)), TypeError),
+            )
             
             
         
