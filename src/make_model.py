@@ -128,7 +128,12 @@ class Object:
     
     __delitem__ = object.__delattr__
     
-    __repr__ = lambda self: f'{self.__class__.__name__}({format_slots(self)}'
+    __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
+    
+    __contains__ = lambda self, x: fallback(
+        (lambda: bool(self[x]) or True, AttributeError),
+        lambda: False
+    )
     
     
     _schema = {}
