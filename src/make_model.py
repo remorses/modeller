@@ -19,11 +19,6 @@ def make_model(
     """
     schema['title'] = schema.get('title', '').replace(' ','_') or name
     
-    schema = schema.get('anyOf', {}) or \
-        schema.get('allOf', {}) or \
-        schema.get('oneOf', {}) or \
-        schema
-
     switch = {
         'object':  make_object,
         'array':   make_array,
@@ -32,11 +27,46 @@ def make_model(
         'boolean': make_boolean,
     }
     
-    return switch[schema.get('type', '')](schema)
+    data_types = merge_types(schema)
+    
+    maker = fallback(
+        *[switch[data_type] for data_type in data_types],
+    )
+    
+    return maker(schema)
     
 
-
-
+def merge_types(schema):
+    types = []
+    
+    schemas = schema.get('anyOf', []) or \
+        schema.get('allOf', []) or \
+        schema.get('oneOf', []) or \
+        [schema]
+    
+    for schema in schemas:
+        if 'type' in schema:
+            types += [schema['type']]
+            
+        elif any(x in schema for x in ('allOf', 'anyOf', 'oneOf')):
+            types += merge_types(schema)
+            
+    return types
+         
+def merge_properties(schema):
+    properties = []
+    
+    schemas = schema.get('anyOf', []) or \
+        schema.get('allOf', []) or \
+        schema.get('oneOf', []) or \
+        [schema]
+    
+    for schema in schemas:
+        if 'properties' in schema:
+            types += schema['properties']
+            
+    return properties
+    
 make_string = lambda schema: lambda value: string_validation(schema, value) and str(value)
 
 make_number = lambda schema: lambda value: number_validation(schema, value) and value
@@ -50,13 +80,12 @@ make_object = lambda schema: type(
 )
 
 def make_object_attributes(schema):
-    properties = schema.get('properties', {}) 
-    required = schema.get('required', ())
+
+    properties = merge_properties(schema)
     
     return {
         '__slots__': tuple(properties.keys()),
-        '_properties': properties,
-        '_required': required,
+        '_schema': schema,
     }
 
 make_array = lambda schema: \
