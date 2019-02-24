@@ -125,7 +125,7 @@ class Object:
         
         schema = self._schema
         
-        Validator(schema).check(kwargs)
+        Validator(schema).validate(kwargs)
         
         properties = schema.get('properties', {})
         
