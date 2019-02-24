@@ -130,11 +130,9 @@ class Object:
     
     __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
     
-    __contains__ = lambda self, x: fallback(
-        (lambda: bool(self[x]) or True, AttributeError),
-        lambda: False
-    )
+    __iter__ = lambda self: iter(self.__slots__)
     
+    __contains__ = lambda self, x: x in self.__slots__    
     
     _schema = {}
 
