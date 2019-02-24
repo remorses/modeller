@@ -101,6 +101,8 @@ def make_object_attributes(schema):
 
     properties = merge_properties(schema)
     
+    print('properties keys', properties)
+    
     return {
         '__slots__': tuple(properties.keys()),
         '_schema': schema,
