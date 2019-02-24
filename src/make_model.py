@@ -23,6 +23,8 @@ def make_model(
     """
     schema['title'] = schema.get('title', '').replace(' ','_') or name
     
+    print('schema', schema)
+    
     switch = {
         'object':  make_object,
         'array':   make_array,
@@ -126,7 +128,6 @@ class Object:
     
     __repr__ = lambda self: f'{self.__class__.__name__}({format_slots(self)}'
     
-    __slots__ = tuple()
     
     _schema = {}
 
