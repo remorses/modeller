@@ -1,4 +1,8 @@
 from .support import fallback
+from jsonschema import validate, Draft7Validator
+
+
+Validator = Draft7Validator
 
 
 def make_model(
@@ -63,15 +67,15 @@ def merge_properties(schema):
     
     for schema in schemas:
         if 'properties' in schema:
-            types += schema['properties']
+            properties += schema['properties']
             
     return properties
     
-make_string = lambda schema: lambda value: string_validation(schema, value) and str(value)
+make_string = lambda schema: lambda value: Validator(schema).is_valid(value) and str(value)
 
-make_number = lambda schema: lambda value: number_validation(schema, value) and value
+make_number = lambda schema: lambda value: Validator(schema).is_valid(value) and value
 
-make_boolean = lambda schema: lambda value: number_validation(schema, value) and value
+make_boolean = lambda schema: lambda value: Validator(schema).is_valid(value) and value
 
 make_object = lambda schema: type(
     schema.get('title', 'Object'),
@@ -89,56 +93,12 @@ def make_object_attributes(schema):
     }
 
 make_array = lambda schema: \
-    lambda value: array_validation and \
+    lambda value: Validator(schema).is_valid(value) and \
     fallback(
         lambda: [make_model(schema.get('items', {}))(**v) for v in value],
         lambda: [make_model(schema.get('items', {}))(v) for v in value],
     )()
 
-
-def number_validation(schema, value):
-    if not isinstance(v, int) and not isinstance(v, float):
-        raise ValueError(
-                'The attribute "{0}" must be an int or float, but was "{1}"'.format(k, type(value)))
-    
-    return True
-
-def string_validation(schema, value):
-    if type_ == 'string' and not isinstance(v, str):
-        raise ValueError('The attribute "{0}" must be a string, but was "{1}"'.format(k, type(value)))
-    
-    return True
-        
-
-def boolean_validation(schema, value):
-    if type_ == 'boolean' and not isinstance(v, bool):
-        raise ValueError('The attribute "{0}" must be an int, but was "{1}"'.format(k, type(value)))
-    
-    return True
-
-
-def array_validation(schema, value):
-
-    if not isinstance(value, (list, tuple,)):
-        raise ValueError('The attribute "{0}" must be an array, but was "{1}"'.format(k, type(value)))
-    
-    return True
-
-
-def object_validation(schema, **kwargs):
-        
-    for k, v in kwargs.items():
-    
-        if k not in schema.get('properties', {}):
-            raise ValueError(
-                    'The model "{0}" does not have an attribute "{1}"'.format(self.__class__.__name__, k))
-                    
-    for key in schema.get('required', []):
-        if key not in kwargs:
-            raise ValueError('The attribute "{0}" is required'.format(key))
-
-            
-    return True
 
     
 class Object:
