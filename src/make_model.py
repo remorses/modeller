@@ -111,7 +111,7 @@ make_array = lambda schema: \
 
 
 def format_slots(self):
-    return f"({', '.join([str(k) + '=' + str(self[str(k)]) for k in self.__slots__ if k in self])})"
+    return f"({', '.join([str(k) + '=' + str(self[k]) for k in self.__slots__ if k in self])})"
 
     
 class Object:
@@ -124,11 +124,15 @@ class Object:
     
     __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
     
-    __iter__ = lambda self: iter(self.__slots__)
+    __iter__ = lambda self: iter([x for x in self.__slots__ if x in self)
     
-    __contains__ = lambda self, x: x in self.__slots__    
+    __contains__ = lambda self, x: x in self.__slots__ and fallback(
+            lambda: bool(self[x]) or True,
+            lambda: False
+        )
     
     _schema = {}
+    
 
     def __init__(self, **kwargs):
     
