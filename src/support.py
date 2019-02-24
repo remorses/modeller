@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+import traceback.print_exc
 
 def expandable(value):
     if isinstance(value, Mapping):
@@ -16,6 +17,7 @@ def fallback(*approaches):
         try:
             return func()
         except catch:
+            traceback.print_exc()
             pass
 
 def _ensure_exceptable(errors):
