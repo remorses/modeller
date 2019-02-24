@@ -16,7 +16,7 @@ data = {
     'billing_address': {
         'street_address': 'ciao',
         'state': 'usa',
-        'city': 'sd'
+        'city': 'sd',
         'code': 'boh',
     },
     'shipping_address': {
