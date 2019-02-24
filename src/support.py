@@ -17,7 +17,8 @@ def fallback(*approaches):
         try:
             return func()
         except catch:
-            traceback.print_exc()
+            if catch == Exception: # not predicted
+                traceback.print_exc()
             pass
 
 def _ensure_exceptable(errors):
