@@ -39,6 +39,10 @@ def make_model(
         *[lambda: switch[data_type](schema) for data_type in data_types],
     )
     
+    print([switch[data_type](schema) for data_type in data_types])
+
+    print([switch[data_type](schema)({}) for data_type in data_types])
+    
     print(maker)
     
     return maker()
@@ -108,6 +112,9 @@ make_array = lambda schema: \
     )()
 
 
+def format_slots(self):
+    return f"({', '.join([k + '=' + self[k] for k in self.__slots__ if k in self])})"
+
     
 class Object:
     
@@ -116,6 +123,8 @@ class Object:
     __getitem__ = object.__getattribute__ 
     
     __delitem__ = object.__delattr__
+    
+    __repr__ = lambda self: f'{self.__class__.__name__}({format_slots(self)}'
     
     __slots__ = tuple()
     
