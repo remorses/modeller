@@ -79,7 +79,7 @@ def merge_properties(schema):
         if 'properties' in schema:
             for k, v in schema['properties'].items():
                 try:
-                    merge(properties, {k:v})
+                    properties = merge(properties, {k:v})
                 except:
                     raise
             
