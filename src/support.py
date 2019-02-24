@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-import traceback.print_exc
+import traceback
 
 def expandable(value):
     if isinstance(value, Mapping):
