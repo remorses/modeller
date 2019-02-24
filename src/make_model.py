@@ -124,7 +124,7 @@ class Object:
     
     _schema = {}
 
-    def __init__(self, *, **kwargs):
+    def __init__(self, **kwargs):
         
         schema = self._schema
         
