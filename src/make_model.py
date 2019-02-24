@@ -75,7 +75,7 @@ def merge_properties(schema):
                 try:
                     merge(properties, prop)
                 except:
-                    pass
+                    raise
             
     return properties
     
@@ -125,7 +125,7 @@ class Object:
         
         schema = self._schema
         
-        assert Validator(schema).is_valid(kwargs)
+        Validator(schema).check(kwargs)
         
         properties = schema.get('properties', {})
         
