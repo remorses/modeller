@@ -124,7 +124,7 @@ class Object:
     
     __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
     
-    __iter__ = lambda self: iter([x for x in self.__slots__ if x in self)
+    __iter__ = lambda self: iter([x for x in self.__slots__ if x in self])
     
     __contains__ = lambda self, x: x in self.__slots__ and fallback(
             lambda: bool(self[x]) or True,
