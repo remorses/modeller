@@ -17,7 +17,7 @@ data = {
         'street_address': 'ciao',
         'state': 'usa',
         'code': 'boh',
-    }
+    },
     'shipping_address': {
         'street_address': 'asd',
         'state': 'usa',
