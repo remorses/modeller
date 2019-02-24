@@ -1,4 +1,4 @@
-from .support import fallback
+from .support import fallback, merge
 from jsonschema import validate, Draft7Validator
 
 
@@ -59,7 +59,7 @@ def merge_types(schema):
         elif any(x in schema for x in ('allOf', 'anyOf', 'oneOf')):
             types += merge_types(schema)
             
-    return types
+    return list(set(types))
          
 def merge_properties(schema):
     properties = {}
@@ -73,9 +73,9 @@ def merge_properties(schema):
         if 'properties' in schema:
             for prop in schema['properties']:
                 try:
-                    properties.update(prop)
+                    merge(properties, prop)
                 except:
-                    raise
+                    pass
             
     return properties
     

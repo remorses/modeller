@@ -25,3 +25,18 @@ def _ensure_exceptable(errors):
        I.e. should be BaseException subclass or a tuple."""
     is_exception = isinstance(errors, type) and issubclass(errors, BaseException)
     return errors if is_exception else tuple(errors)
+
+
+
+def merge(a, b):
+    result = dict()
+
+    [result.update({x: dict(**a[x], **b[x])}) for x in set(a.keys()) & set(b.keys())
+        if isinstance(a[x], dict) and isinstance(b[x], dict)]
+
+    [result.update({x: [*a[x], *b[x]]}) for x in set(a.keys()) & set(b.keys())
+        if isinstance(a[x], list) and isinstance(b[x], list)]
+
+    [result.update({x: a[x] if x in a else b[x]}) for x in set(a.keys()) ^ set(b.keys() )]
+
+    return result
