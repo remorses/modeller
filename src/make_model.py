@@ -41,7 +41,7 @@ def make_model(
     
     print([switch[data_type](schema) for data_type in data_types])
 
-    print([switch[data_type](schema)(name='') for data_type in data_types])
+    # print([switch[data_type](schema)(name='') for data_type in data_types])
     
     print(maker)
     
