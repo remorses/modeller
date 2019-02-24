@@ -2,7 +2,7 @@ from .make_model import make_model
 import json
 
 
-schema = json.load(open('test.json'))
+schema = json.load(open('src/test.json'))
 
 
         
