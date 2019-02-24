@@ -18,16 +18,17 @@ def make_model(
     )
     """
     schema['title'] = schema.get('title', '').replace(' ','_') or name
+     
 
     switch = {
-        'object': lambda: make_object(schema),
-        'array': lambda: make_array(schema),
-        'number': lambda: make_number(schema),
-        'string': lambda: make_string(schema),
-        'boolean': lambda: make_boolean(schema),
+        'object':  make_object,
+        'array':   make_array,
+        'number':  make_number,
+        'string':  make_string,
+        'boolean': make_boolean,
     }
     
-    switch[schema.get('type')]()
+    return switch[schema.get('type', '')](schema)
     
 
 
