@@ -16,12 +16,13 @@ data = {
     'billing_address': {
         'street_address': 'ciao',
         'state': 'usa',
+        'city': 'sd'
         'code': 'boh',
     },
     'shipping_address': {
         'street_address': 'asd',
         'state': 'usa',
-        'code': 'boh',
+        'city': 'boh',
     }
 }
 
