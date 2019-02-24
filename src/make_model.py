@@ -17,7 +17,7 @@ def make_model(
         # set_defaults=True # if schema has a default and property is not presetn it will use the default value
     )
     """
-    schema['title'] = shema.get('title').replace(' ','_') or name
+    schema['title'] = schema.get('title').replace(' ','_') or name
 
     switch = {
         'object': lambda: make_object(schema),
