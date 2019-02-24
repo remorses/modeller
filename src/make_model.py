@@ -51,7 +51,7 @@ def make_object_attributes(schema):
         schema
         
     properties = schema.get('properties', {}) 
-    required = schema.get('required', (,))
+    required = schema.get('required', ())
     
     return {
         '__slots__': tuple(properties.keys()),
@@ -120,7 +120,7 @@ class Object:
 	
 	__delitem__ = object.__delattr__
     
-    __slots__ = (,)
+    __slots__ = ()
     
     _schema = {}
 
