@@ -113,14 +113,14 @@ def object_validation(schema, **kwargs):
 
     
 class Object:
-	
-	__setitem__ = object.__setattr__
-	
-	__getitem__ = object.__getattribute__ 
-	
-	__delitem__ = object.__delattr__
-	
-	__slots__ = tuple()
+    
+    __setitem__ = object.__setattr__
+    
+    __getitem__ = object.__getattribute__ 
+    
+    __delitem__ = object.__delattr__
+    
+    __slots__ = tuple()
     
     _schema = {}
 
