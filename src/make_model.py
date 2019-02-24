@@ -117,7 +117,7 @@ make_array = lambda schema: \
 
 
 def format_slots(self):
-    return f"({', '.join([k + '=' + str(self[k]) for k in self.__slots__ if k in self])})"
+    return f"({', '.join([str(k) + '=' + str(self[k]) for k in self.__slots__ if k in self])})"
 
     
 class Object:
