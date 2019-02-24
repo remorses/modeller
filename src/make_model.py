@@ -6,10 +6,10 @@ Validator = Draft7Validator
 
 
 def make_model(
-    schema: dict,
-    name: str = 'Model',
-    immutable: bool = False,
-):
+        schema: dict,
+        name: str = 'Model',
+        immutable: bool = False,
+    ):
     """
     import yaml
     
@@ -80,10 +80,8 @@ def merge_properties(schema):
     for schema in schemas:
         if 'properties' in schema:
             for k, v in schema['properties'].items():
-                try:
-                    properties = merge(properties, {k:v})
-                except:
-                    raise
+                properties = merge(properties, {k:v})
+                
             
     return properties
     
@@ -96,19 +94,13 @@ make_boolean = lambda schema: lambda value: Validator(schema).is_valid(value) an
 make_object = lambda schema: type(
     schema.get('title', 'Object'),
     (Object,),
-    make_object_attributes(schema),
+    {
+        '__slots__': tuple(merge_properties(schema).keys()),
+        '_schema': schema,
+    },
 )
 
-def make_object_attributes(schema):
 
-    properties = merge_properties(schema)
-    
-    print('properties keys', properties)
-    
-    return {
-        '__slots__': tuple(properties.keys()),
-        '_schema': schema,
-    }
 
 make_array = lambda schema: \
     lambda value: Validator(schema).is_valid(value) and \
