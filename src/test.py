@@ -3,9 +3,6 @@ import json
 
 
 schema = json.load(open('src/test.json'))
-
-
-        
     
 
 Model = make_model(schema=schema)

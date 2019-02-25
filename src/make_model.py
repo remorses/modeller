@@ -21,7 +21,7 @@ def make_model(
         # set_defaults=True # if schema has a default and property is not presetn it will use the default value
     )
     """
-    if schema.get('title', '') == 'object':
+    if schema.get('type', '') == 'object':
         schema['title'] = schema.get('title', '').replace(' ','_') or name
     
     
@@ -147,8 +147,8 @@ class Object:
         for k, v in kwargs.items():
                         
             fallback(
-                (lambda: setattr(self, k, make_model(schema=properties[k])(**v)), TypeError),
-                (lambda: setattr(self, k, make_model(schema=properties[k])(v)), TypeError),
+                (lambda: setattr(self, k, make_model(schema=properties.get(k))(**v)), TypeError),
+                (lambda: setattr(self, k, make_model(schema=properties.get(k))(v)), TypeError),
             )
             
             
