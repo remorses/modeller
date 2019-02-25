@@ -1,8 +1,9 @@
 from .make_model import make_model
 import json
+import yaml
 
 
-schema = json.load(open('src/test.json'))
+schema = yaml.load(open('src/test.yaml').read())
     
 
 Model = make_model(schema=schema)
