@@ -1,36 +1,36 @@
 
 required: 
-- "shipping_address"
-type: "object"
+  - shipping_address
+type: object
 properties: 
   billing_address: 
     required: 
-    - "street_address"
-    - "city"
-    - "state"
-    type: "object"
+      - street_address
+      - city
+      - state
+    type: object
     properties: 
       city: 
-        type: "string"
+        type: string
       state: 
-        type: "string"
+        type: string
       code: 
-        type: "string"
+        type: string
       street_address: 
-        type: "string"
+        type: string
   shipping_address: 
     required: 
-    - "street_address"
-    - "city"
-    - "state"
-    type: "object"
+      - street_address
+      - city
+      - state
+    type: object
     properties: 
       city: 
-        type: "string"
+        type: string
       state: 
-        type: "string"
+        type: string
       code: 
-        type: "string"
+        type: string
       street_address: 
-        type: "string"
-id: "test_schema.json"
+        type: string
+id: test_schema.json
