@@ -16,7 +16,7 @@ with open(path.join(here, 'VERSION'), 'r') as f:
     version = f.read().strip()
 
 setup(
-    name='modeler',
+    name='modeller',
     version=version,
 
     description='create efficent models starting from json schema',
