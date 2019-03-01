@@ -165,7 +165,7 @@ class Model(metaclass=Meta):
                     (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(**v)), TypeError),
                     (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
                 )
-                print(k)
+                # print(k)
         # print(self.__additional__)
 
     def _validate(self):
