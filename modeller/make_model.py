@@ -105,6 +105,8 @@ class Meta(type):
         x = super().__new__(cls, name, bases, dct)
         return x
 
+def throw(e):
+    raise e
 
 class Model(metaclass=Meta):
 
@@ -115,8 +117,8 @@ class Model(metaclass=Meta):
 
     __getattribute__ = lambda self, name: fallback(
         lambda: object.__getattribute__(self, name,),
-        lambda: self.__additional__.get(name)
-    )
+        lambda: self.__additional__.get(name) 
+    ) or throw(AttributeError(f'{name} not present'))
 
     __delattr__ = lambda self, name: object.__delattr__(self, name,) if name in self.__slots__  \
         else self.__additional__.__delitem__(name)

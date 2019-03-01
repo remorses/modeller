@@ -5,7 +5,7 @@ if __name__ == '__main__':
 
     # @profile
     def main():
-        import modeler
+        import modeller
 
 
         schema = yaml.load("""
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
         # schema = json.load(open('tests/test.json'))
 
-        User = modeler.make_model(schema=schema,)
+        User = modeller.make_model(schema=schema,)
 
         data = {
             'billing_address': {
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
         print()
 
-        class User(modeler.Model):
+        class User(modeller.Model):
             _schema = {
                 'type': 'object',
                 'properties': {
