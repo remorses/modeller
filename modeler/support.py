@@ -1,11 +1,7 @@
-from collections.abc import Mapping
 import traceback
-
-def expandable(value):
-    if isinstance(value, Mapping):
-        return True
-    else:
-        return False 
+import collections
+import jsonschema
+import yaml
 
 
 def fallback(*approaches):
@@ -41,3 +37,51 @@ def merge(a, b):
     [result.update({x: a[x] if x in a else b[x]}) for x in set(a.keys()) ^ set(b.keys() )]
 
     return result
+
+
+
+def resolve_refs( spec, uri='', store={}):
+    """Resolve JSON references in a given dictionary.
+
+    OpenAPI spec may contain JSON references to its nodes or external
+    sources, so any attempt to rely that there's some expected attribute
+    in the spec may fail. So we need to resolve JSON references before
+    we use it (i.e. replace with referenced object). For details see:
+
+        https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-02
+
+    The input spec is modified in-place despite being returned from
+    the function.
+    """
+
+    resolver = jsonschema.RefResolver(uri, spec, store=store)
+
+    def _do_resolve(node):
+        if isinstance(node, collections.Mapping) and '$ref' in node:
+            with resolver.resolving(node['$ref']) as resolved:
+                return resolved
+        elif isinstance(node, collections.Mapping):
+            for k, v in node.items():
+                node[k] = _do_resolve(v)
+        elif isinstance(node, (list, tuple)):
+            for i in range(len(node)):
+                node[i] = _do_resolve(node[i])
+        return node
+
+    return _do_resolve(spec)
+
+
+if __name__ == '__main__':
+    import yaml
+
+    schema = yaml.load("""
+    properties:
+        ciao:
+            $ref: cosa
+    type: object
+    """)
+    store = {'cosa': "type: string"}
+
+    resolved = resolve_refs(schema, store=store)
+
+    print(resolved)

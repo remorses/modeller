@@ -1,5 +1,5 @@
-from .support import fallback, merge
-from jsonschema import validate, Draft7Validator
+from .support import fallback, merge, resolve_refs
+from jsonschema import Draft7Validator
 
 
 Validator = Draft7Validator
@@ -8,25 +8,35 @@ Validator = Draft7Validator
 def make_model(
         schema: dict,
         name: str = 'Model',
+        uri: str = '',
+        store: dict = {},
         immutable: bool = False,
     ):
     """
     import yaml
-    
+
     schema = yaml.load(open('types/model.yml').read())
-    
+
     Model = make_model(
         schema=schema,
         immutable=True,
         # set_defaults=True # if schema has a default and property is not presetn it will use the default value
     )
     """
+    uri = uri or schema.get('$id', '')
+
+    schema = resolve_refs(schema, uri, store=store)
+
     if schema.get('type', '') == 'object':
-        schema['title'] = schema.get('title', '').replace(' ','_') or name
-    
-    
+        schema['title'] = schema.get('title', '') \
+            .replace(' ','_') \
+            .replace('.','_') \
+            .replace('/','_') \
+            .replace('-','_') or name
+
+
     # print('schema', schema)
-    
+
     switch = {
         'object':  make_object,
         'array':   make_array,
@@ -34,57 +44,57 @@ def make_model(
         'string':  make_string,
         'boolean': make_boolean,
     }
-    
+
     data_types = merge_types(schema)
-    
+
     # print(data_types)
-    
+
     maker = fallback(
         *[(lambda: switch[data_type](schema), TypeError) for data_type in data_types],
     )
-    
+
     # print([switch[data_type](schema) for data_type in data_types])
 
     # print([switch[data_type](schema)(name='') for data_type in data_types])
-    
+
     # print(maker)
-    
+
     return maker
-    
+
 
 def merge_types(schema):
     types = []
-    
+
     schemas = schema.get('anyOf', []) or \
         schema.get('allOf', []) or \
         schema.get('oneOf', []) or \
         [schema]
-    
+
     for schema in schemas:
         if 'type' in schema:
             types += [schema['type']]
-            
+
         elif any(x in schema for x in ('allOf', 'anyOf', 'oneOf')):
             types += merge_types(schema)
-            
+
     return list(set(types))
-         
+
 def merge_properties(schema):
     properties = {}
-    
+
     schemas = schema.get('anyOf', []) or \
         schema.get('allOf', []) or \
         schema.get('oneOf', []) or \
         [schema]
-    
+
     for schema in schemas:
         if 'properties' in schema:
             for k, v in schema['properties'].items():
                 properties = merge(properties, {k:v})
-                
-            
+
+
     return properties
-    
+
 make_string = lambda schema: lambda value: Validator(schema).is_valid(value) and str(value)
 
 make_number = lambda schema: lambda value: Validator(schema).is_valid(value) and value
@@ -113,46 +123,40 @@ make_array = lambda schema: \
 def format_slots(self):
     return f"({', '.join([str(k) + '=' + str(self[k]) for k in self.__slots__ if k in self])})"
 
-    
+
 class Object:
-    
+
     __setitem__ = object.__setattr__
-    
-    __getitem__ = object.__getattribute__ 
-    
+
+    __getitem__ = object.__getattribute__
+
     __delitem__ = object.__delattr__
-    
+
     __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
-    
+
     __iter__ = lambda self: iter([x for x in self.__slots__ if x in self])
-    
+
     __contains__ = lambda self, x: x in self.__slots__ and fallback(
             (lambda: bool(self[x]) or True, AttributeError),
             lambda: False
         )
-    
+
     _schema = {}
-    
+
 
     def __init__(self, **kwargs):
-    
+
         # print('__slot__', self.__slots__)
-        
+
         schema = self._schema
-        
+
         Validator(schema).validate(kwargs)
-        
+
         properties = schema.get('properties', {})
-        
+
         for k, v in kwargs.items():
-                        
+
             fallback(
                 (lambda: setattr(self, k, make_model(schema=properties.get(k))(**v)), TypeError),
                 (lambda: setattr(self, k, make_model(schema=properties.get(k))(v)), TypeError),
             )
-            
-            
-        
-                
-                
-
