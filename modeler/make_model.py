@@ -1,9 +1,6 @@
 from .support import fallback, merge, resolve_refs, silent
-from jsonschema import Draft7Validator
+import fastjsonschema
 import json
-
-
-Validator = Draft7Validator
 
 
 def make_model(
@@ -56,6 +53,7 @@ def make_model(
 
     maker = fallback(
         *[(lambda: switch[data_type](schema), TypeError) for data_type in data_types],
+        lambda: lambda x: x
     )
     # print(maker)
 
@@ -81,15 +79,14 @@ def merge_types(schema):
 
 
 
-make_string = lambda schema: lambda value: Validator(schema).is_valid(value) and str(value)
+make_string = lambda schema: lambda value: value
 
-make_number = lambda schema: lambda value: Validator(schema).is_valid(value) and value
+make_number = lambda schema: lambda value: value
 
-make_boolean = lambda schema: lambda value: Validator(schema).is_valid(value) and value
+make_boolean = lambda schema: lambda value: value
 
 make_array = lambda schema: \
-    lambda value: Validator(schema).is_valid(value) and \
-    fallback(
+    lambda value: fallback(
         (lambda: [make_model(schema.get('items', {}))(**v) for v in value], TypeError),
         (lambda: [make_model(schema.get('items', {}))(v) for v in value],TypeError),
     )
@@ -97,12 +94,14 @@ make_array = lambda schema: \
 
 
 def format_slots(self):
-    return f"({', '.join([str(k) + '=' + str(self[k]) for k in self.__slots__ if k in self])})"
+    return f"({', '.join([str(k) + '=' + str(self[k]) for k in [*self.__slots__, *self.__additional__.keys()] if k in self])})"
 
 
 class Meta(type):
     def __new__(cls, name, bases, dct):
         dct.update({'__slots__': list(dct.get('_schema', {}).get('properties', {}).keys())})
+        validate = fastjsonschema.compile(dct.get('_schema', {}))
+        dct.update({'_validate': lambda self: validate(self._serialize())})
         x = super().__new__(cls, name, bases, dct)
         return x
 
@@ -110,8 +109,6 @@ class Meta(type):
 class Model(metaclass=Meta):
 
     __metaclass__ = Meta
-
-
 
     __setattr__ = lambda self, name, v: object.__setattr__(self, name, v) if name in self.__slots__  \
         else self.__additional__.__setitem__(name, v)
@@ -132,20 +129,19 @@ class Model(metaclass=Meta):
 
     __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
 
-    __iter__ = lambda self: iter((*[self[x] for x in self.__slots__ if x in self], *[self[y] for y in self.__additional__ ]))
+    __iter__ = lambda self: iter((*[x for x in self.__slots__ if x in self], *[y for y in self.__additional__ ]))
 
     __contains__ = lambda self, x: (x in self.__slots__ or x in self.__additional__) and \
         (silent(lambda: self[x])() or self.__additional__.get(x, False))
 
-    __additional__ = {}
 
     _schema = {}
 
+    __additional__ = {}
+
     __slots__ = tuple()
 
-
-    _validator = Draft7Validator
-
+    _compiled = lambda: None
 
     def __init__(self, **kwargs):
 
@@ -154,29 +150,27 @@ class Model(metaclass=Meta):
 
         schema = self._schema
 
-        self._validator(schema).validate(kwargs)
+        print(kwargs)
 
         properties = schema.get('properties', {})
 
         for k, v in kwargs.items():
-            if k  in properties:
                 fallback(
-                    (lambda: setattr(self, k, make_model(schema=properties.get(k))(**v)), TypeError),
-                    (lambda: setattr(self, k, make_model(schema=properties.get(k))(v)), TypeError),
+                    (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(**v)), TypeError),
+                    (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
                 )
-            else:
-                fallback(
-                    (lambda: setattr(self.__additional__, k, make_model(schema=properties.get(k, {}))(**v)), TypeError),
-                    (lambda: setattr(self.__additional__, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
-                )            #     raise Exception(f'{k} is not in properties, can\' instantaite the Model')
+                print(k)
+        print(self.__additional__)
+
+    def _validate(self):
+        self._compiled(self._serialize())
+
+    #     raise Exception(f'{k} is not in properties, can\' instantaite the Model')
 
     def _serialize(self):
         result = dict()
-        for slot in self.__slots__:
-            if slot in self:
-                result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
-            else:
-                pass
+        for slot in self:
+            result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
         return result
 
     def _json(self):
@@ -204,6 +198,5 @@ make_object = lambda schema: type(
     {
         '__slots__': tuple(merge_properties(schema).keys()),
         '_schema': schema,
-        '_validator': Validator,
     },
 )

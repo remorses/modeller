@@ -1,9 +1,6 @@
-import traceback
 import collections
-import jsonschema
-import yaml
 from functools import wraps
-from funcy import silent
+
 
 def ignore(errors, default=None):
     """Alters function to ignore given errors, returning default instead."""
@@ -75,7 +72,7 @@ def resolve_refs( spec, uri='', store={}):
     the function.
     """
 
-    resolver = jsonschema.RefResolver(uri, spec, store=store)
+    resolver = None #jsonschema.RefResolver(uri, spec, store=store)
 
     def _do_resolve(node):
         if isinstance(node, collections.Mapping) and '$ref' in node:
