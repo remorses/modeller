@@ -115,10 +115,14 @@ class Model(metaclass=Meta):
     __setattr__ = lambda self, name, v: object.__setattr__(self, name, v) if name in self.__slots__  \
         else self.__additional__.__setitem__(name, v)
 
-    __getattribute__ = lambda self, name: fallback(
-        lambda: object.__getattribute__(self, name,),
-        lambda: self.__additional__.get(name) 
-    ) or throw(AttributeError(f'{name} not present'))
+    def __getattribute__(self, name):
+        try:
+            val = object.__getattribute__(self, name,)
+        except:
+            sentinel = '_not_found'
+            val = self.__additional__.get(name, sentinel)
+            val == sentinel and throw(AttributeError(f'{name} not present'))
+        return val
 
     __delattr__ = lambda self, name: object.__delattr__(self, name,) if name in self.__slots__  \
         else self.__additional__.__delitem__(name)
