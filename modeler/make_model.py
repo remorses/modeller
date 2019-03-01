@@ -1,5 +1,6 @@
-from .support import fallback, merge, resolve_refs
+from .support import fallback, merge, resolve_refs, silent
 from jsonschema import Draft7Validator
+import json
 
 
 Validator = Draft7Validator
@@ -10,7 +11,7 @@ def make_model(
         name: str = 'Model',
         uri: str = '',
         store: dict = {},
-        immutable: bool = False,
+        # immutable: bool = False,
     ):
     """
     import yaml
@@ -23,6 +24,9 @@ def make_model(
         # set_defaults=True # if schema has a default and property is not presetn it will use the default value
     )
     """
+    # if not schema:
+    #     raise Exception('schema is needed to instantiate a model')
+
     uri = uri or schema.get('$id', '')
 
     schema = resolve_refs(schema, uri, store=store)
@@ -41,6 +45,7 @@ def make_model(
         'object':  make_object,
         'array':   make_array,
         'number':  make_number,
+        'integer':  make_number,
         'string':  make_string,
         'boolean': make_boolean,
     }
@@ -52,11 +57,6 @@ def make_model(
     maker = fallback(
         *[(lambda: switch[data_type](schema), TypeError) for data_type in data_types],
     )
-
-    # print([switch[data_type](schema) for data_type in data_types])
-
-    # print([switch[data_type](schema)(name='') for data_type in data_types])
-
     # print(maker)
 
     return maker
@@ -79,6 +79,111 @@ def merge_types(schema):
 
     return list(set(types))
 
+
+
+make_string = lambda schema: lambda value: Validator(schema).is_valid(value) and str(value)
+
+make_number = lambda schema: lambda value: Validator(schema).is_valid(value) and value
+
+make_boolean = lambda schema: lambda value: Validator(schema).is_valid(value) and value
+
+make_array = lambda schema: \
+    lambda value: Validator(schema).is_valid(value) and \
+    fallback(
+        (lambda: [make_model(schema.get('items', {}))(**v) for v in value], TypeError),
+        (lambda: [make_model(schema.get('items', {}))(v) for v in value],TypeError),
+    )
+
+
+
+def format_slots(self):
+    return f"({', '.join([str(k) + '=' + str(self[k]) for k in self.__slots__ if k in self])})"
+
+
+class Meta(type):
+    def __new__(cls, name, bases, dct):
+        dct.update({'__slots__': list(dct.get('_schema', {}).get('properties', {}).keys())})
+        x = super().__new__(cls, name, bases, dct)
+        return x
+
+
+class Model(metaclass=Meta):
+
+    __metaclass__ = Meta
+
+
+
+    __setattr__ = lambda self, name, v: object.__setattr__(self, name, v) if name in self.__slots__  \
+        else self.__additional__.__setitem__(name, v)
+
+    __getattribute__ = lambda self, name: fallback(
+        lambda: object.__getattribute__(self, name,),
+        lambda: self.__additional__.get(name)
+    )
+
+    __delattr__ = lambda self, name: object.__delattr__(self, name,) if name in self.__slots__  \
+        else self.__additional__.__delitem__(name)
+
+    __setitem__ = __setattr__
+
+    __getitem__ = __getattribute__
+
+    __delitem__ = __delattr__
+
+    __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
+
+    __iter__ = lambda self: iter((*[self[x] for x in self.__slots__ if x in self], *[self[y] for y in self.__additional__ ]))
+
+    __contains__ = lambda self, x: (x in self.__slots__ or x in self.__additional__) and \
+        (silent(lambda: self[x])() or self.__additional__.get(x, False))
+
+    __additional__ = {}
+
+    _schema = {}
+
+    __slots__ = tuple()
+
+
+    _validator = Draft7Validator
+
+
+    def __init__(self, **kwargs):
+
+        # print('__slot__', self.__slots__)
+        # print('_schema', self._schema)
+
+        schema = self._schema
+
+        self._validator(schema).validate(kwargs)
+
+        properties = schema.get('properties', {})
+
+        for k, v in kwargs.items():
+            if k  in properties:
+                fallback(
+                    (lambda: setattr(self, k, make_model(schema=properties.get(k))(**v)), TypeError),
+                    (lambda: setattr(self, k, make_model(schema=properties.get(k))(v)), TypeError),
+                )
+            else:
+                fallback(
+                    (lambda: setattr(self.__additional__, k, make_model(schema=properties.get(k, {}))(**v)), TypeError),
+                    (lambda: setattr(self.__additional__, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
+                )            #     raise Exception(f'{k} is not in properties, can\' instantaite the Model')
+
+    def _serialize(self):
+        result = dict()
+        for slot in self.__slots__:
+            if slot in self:
+                result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
+            else:
+                pass
+        return result
+
+    def _json(self):
+        return json.dumps(self._serialize(), indent=2)
+
+
+
 def merge_properties(schema):
     properties = {}
 
@@ -91,72 +196,14 @@ def merge_properties(schema):
         if 'properties' in schema:
             for k, v in schema['properties'].items():
                 properties = merge(properties, {k:v})
-
-
     return properties
-
-make_string = lambda schema: lambda value: Validator(schema).is_valid(value) and str(value)
-
-make_number = lambda schema: lambda value: Validator(schema).is_valid(value) and value
-
-make_boolean = lambda schema: lambda value: Validator(schema).is_valid(value) and value
 
 make_object = lambda schema: type(
     schema.get('title', 'Object'),
-    (Object,),
+    (Model,),
     {
         '__slots__': tuple(merge_properties(schema).keys()),
         '_schema': schema,
+        '_validator': Validator,
     },
 )
-
-
-
-make_array = lambda schema: \
-    lambda value: Validator(schema).is_valid(value) and \
-    fallback(
-        (lambda: [make_model(schema.get('items', {}))(**v) for v in value], TypeError),
-        (lambda: [make_model(schema.get('items', {}))(v) for v in value],TypeError),
-    )
-
-
-def format_slots(self):
-    return f"({', '.join([str(k) + '=' + str(self[k]) for k in self.__slots__ if k in self])})"
-
-
-class Object:
-
-    __setitem__ = object.__setattr__
-
-    __getitem__ = object.__getattribute__
-
-    __delitem__ = object.__delattr__
-
-    __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
-
-    __iter__ = lambda self: iter([x for x in self.__slots__ if x in self])
-
-    __contains__ = lambda self, x: x in self.__slots__ and fallback(
-            (lambda: bool(self[x]) or True, AttributeError),
-            lambda: False
-        )
-
-    _schema = {}
-
-
-    def __init__(self, **kwargs):
-
-        # print('__slot__', self.__slots__)
-
-        schema = self._schema
-
-        Validator(schema).validate(kwargs)
-
-        properties = schema.get('properties', {})
-
-        for k, v in kwargs.items():
-
-            fallback(
-                (lambda: setattr(self, k, make_model(schema=properties.get(k))(**v)), TypeError),
-                (lambda: setattr(self, k, make_model(schema=properties.get(k))(v)), TypeError),
-            )

@@ -2,7 +2,27 @@ import traceback
 import collections
 import jsonschema
 import yaml
+from functools import wraps
+from funcy import silent
 
+def ignore(errors, default=None):
+    """Alters function to ignore given errors, returning default instead."""
+    errors = _ensure_exceptable(errors)
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except errors:
+                return default
+        return wrapper
+    return decorator
+
+
+def silent(func):
+    """Alters function to ignore all exceptions."""
+    return ignore(Exception)(func)
 
 def fallback(*approaches):
     """Tries several approaches until one works.
@@ -11,10 +31,11 @@ def fallback(*approaches):
         func, catch = (approach, Exception) if callable(approach) else approach
         catch = _ensure_exceptable(catch)
         try:
+
             return func()
         except catch:
-            if catch == Exception: # not predicted
-                traceback.print_exc()
+            # if catch == Exception: # not predicted
+            #     traceback.print_exc()
             pass
 
 def _ensure_exceptable(errors):
