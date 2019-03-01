@@ -150,7 +150,7 @@ class Model(metaclass=Meta):
 
         schema = self._schema
 
-        print(kwargs)
+        # print(kwargs)
 
         properties = schema.get('properties', {})
 
@@ -160,7 +160,7 @@ class Model(metaclass=Meta):
                     (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
                 )
                 print(k)
-        print(self.__additional__)
+        # print(self.__additional__)
 
     def _validate(self):
         self._compiled(self._serialize())
