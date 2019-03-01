@@ -28,7 +28,7 @@ setup(
     license='Apache Software License 2.0',
 
     url='https://github.com/rpc-botnets/instagram-botnet',
-    keywords=['instagram', 'bot', 'api', 'botnet'],
+    keywords=['model', 'schema', 'structure','struct', 'abstarct'],
     install_requires=[*requirements],
     classifiers=[
         # How mature is this project? Common values are
