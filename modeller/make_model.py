@@ -128,7 +128,8 @@ class Model(metaclass=Meta):
                     [] if _type == 'array' else \
                     None
             else:
-                class Sentinel(None):
+                class Sentinel:
+                    __slots__ = ()
                     pass
                 val = self.__additional__.get(name, Sentinel)
                 val == Sentinel and throw(AttributeError(f'{name} not present'))
