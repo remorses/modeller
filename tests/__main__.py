@@ -48,12 +48,16 @@ if __name__ == '__main__':
 
         print()
 
-        class User(modeller.Model):
+        class X:
+            pass
+
+        class User(X, modeller.Model):
+            id = 0
             _schema = {
                 'type': 'object',
                 'properties': {
                     'name': { 'type': 'string' },
-                    'ciao': { 'type': 'string' },
+                    'id': { 'type': 'string' },
                     'age': { 'type': 'integer' },
                 },
                 'required': [
@@ -63,7 +67,7 @@ if __name__ == '__main__':
                 # 'additionalProperties': False,
             }
 
-        me = User(name='Tommy', surname='Der')
+        me = User(id='Tommy',name='Tommy', surname='Der')
 
         me.ciao = 'fg'
 

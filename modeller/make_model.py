@@ -100,8 +100,9 @@ def format_slots(self):
 
 class Meta(type):
     def __new__(cls, name, bases, dct):
-        protected = ['id']
-        slots = set(dct.get('_schema', {}).get('properties', {}).keys()) - set(protected)
+        # protected = ['id']
+        # print('hey' in dct)
+        slots = set(dct.get('_schema', {}).get('properties', {}).keys())  - set(dct.keys())
         dct.update({'__slots__': list(slots)})
         validate = fastjsonschema.compile(dct.get('_schema', {}))
         dct.update({'_validate': lambda self: validate(self._serialize())})
@@ -112,8 +113,6 @@ def throw(e):
     raise e
 
 class Model(metaclass=Meta):
-
-    __slots__ = tuple()
 
     __metaclass__ = Meta
 
