@@ -111,6 +111,8 @@ def throw(e):
 
 class Model(metaclass=Meta):
 
+    __slots__ = tuple()
+
     __metaclass__ = Meta
 
     __setattr__ = lambda self, name, v: object.__setattr__(self, name, v) if name in self.__slots__  \
@@ -120,9 +122,17 @@ class Model(metaclass=Meta):
         try:
             val = object.__getattribute__(self, name,)
         except:
-            sentinel = '_not_found'
-            val = self.__additional__.get(name, sentinel)
-            val == sentinel and throw(AttributeError(f'{name} not present'))
+            if name in self._schema.get('properties', {}):
+                _type = self._schema['properties'].get('type','')
+                val = {} if  _type == 'object' else \
+                    [] if _type == 'array' else \
+                    None
+            else:
+                class Sentinel(None):
+                    pass
+                val = self.__additional__.get(name, Sentinel)
+                val == Sentinel and throw(AttributeError(f'{name} not present'))
+
         return val
 
     __delattr__ = lambda self, name: object.__delattr__(self, name,) if name in self.__slots__  \
@@ -141,14 +151,9 @@ class Model(metaclass=Meta):
     __contains__ = lambda self, x: (x in self.__slots__ or x in self.__additional__) and \
         (silent(lambda: self[x])() or self.__additional__.get(x, False))
 
-
     _schema = {}
 
     __additional__ = {}
-
-    __slots__ = tuple()
-
-    _compiled = lambda: None
 
     def __init__(self, **kwargs):
 
@@ -167,12 +172,11 @@ class Model(metaclass=Meta):
                     (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
                 )
                 # print(k)
+        self._on_init()
+
         # print(self.__additional__)
 
-    def _validate(self):
-        self._compiled(self._serialize())
-
-    #     raise Exception(f'{k} is not in properties, can\' instantaite the Model')
+    _on_init = lambda self: self._validate()
 
     def _serialize(self):
         result = dict()
@@ -180,8 +184,8 @@ class Model(metaclass=Meta):
             result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
         return result
 
-    def _json(self):
-        return json.dumps(self._serialize(), indent=2)
+    def _json(self, indent=4):
+        return json.dumps(self._serialize(), indent=indent)
 
 
 
