@@ -100,7 +100,9 @@ def format_slots(self):
 
 class Meta(type):
     def __new__(cls, name, bases, dct):
-        dct.update({'__slots__': list(dct.get('_schema', {}).get('properties', {}).keys())})
+        protected = ['id']
+        slots = set(dct.get('_schema', {}).get('properties', {}).keys()) - set(protected)
+        dct.update({'__slots__': list(slots)})
         validate = fastjsonschema.compile(dct.get('_schema', {}))
         dct.update({'_validate': lambda self: validate(self._serialize())})
         x = super().__new__(cls, name, bases, dct)
@@ -115,10 +117,7 @@ class Model(metaclass=Meta):
 
     __metaclass__ = Meta
 
-    __setattr__ = lambda self, name, v: fallback(
-            lambda: object.__setattr__(self, name, v),
-            lambda: self.__additional__.__setitem__(name, v)
-        ) if name in self.__slots__  \
+    __setattr__ = lambda self, name, v: object.__setattr__(self, name, v) if name in self.__slots__  \
         else self.__additional__.__setitem__(name, v)
 
     def __getattribute__(self, name):
