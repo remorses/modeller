@@ -45,6 +45,7 @@ def make_model(
         'integer':  make_number,
         'string':  make_string,
         'boolean': make_boolean,
+        'null': lambda schema: lambda x: x
     }
 
     data_types = merge_types(schema)
