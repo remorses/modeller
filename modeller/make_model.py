@@ -115,7 +115,10 @@ class Model(metaclass=Meta):
 
     __metaclass__ = Meta
 
-    __setattr__ = lambda self, name, v: object.__setattr__(self, name, v) if name in self.__slots__  \
+    __setattr__ = lambda self, name, v: fallback(
+            lambda: object.__setattr__(self, name, v),
+            lambda: self.__additional__.__setitem__(name, v)
+        ) if name in self.__slots__  \
         else self.__additional__.__setitem__(name, v)
 
     def __getattribute__(self, name):
