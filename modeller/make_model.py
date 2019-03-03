@@ -1,7 +1,7 @@
 from .support import fallback, merge, resolve_refs, silent
 import fastjsonschema
 import json
-
+import sys
 
 def make_model(
         schema: dict,
@@ -188,6 +188,18 @@ class Model(metaclass=Meta):
 
     def _json(self, indent=4):
         return json.dumps(self._serialize(), indent=indent)
+
+    def _yaml(self, indent=4):
+        if 'yaml' in sys.modules:
+            yaml = sys.modules['yaml']
+
+            class Dumper(yaml.Dumper):
+                def increase_indent(self, flow=False, indentless=False):
+                    return super(Dumper, self).increase_indent(flow, False)
+
+            return yaml.dump(self._serialize(), Dumper=Dumper, default_flow_style=False)
+        else:
+            throw(Exception('import yaml before calling model._yaml()'))
 
 
 

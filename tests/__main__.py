@@ -1,7 +1,7 @@
 if __name__ == '__main__':
     import yaml
     import json
-    from memory_profiler import profile
+    # from memory_profiler import profile
 
     # @profile
     def main():
@@ -52,7 +52,7 @@ if __name__ == '__main__':
             pass
 
         class User(X, modeller.Model):
-            id = 0
+            id = ''
             _schema = {
                 'type': 'object',
                 'properties': {
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
         me.h = 9
 
-        print(me._json())
+        print(me._yaml())
 
         print(me.surname)
 
