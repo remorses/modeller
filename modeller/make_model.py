@@ -130,11 +130,12 @@ class Model(dict, metaclass=Meta):
 
     def __getitem__(self, name):
         try:
-            return  object.__getattribute__(self, name)
+            val = object.__getattribute__(self, name)
         except:
             val = dict.get(self, name, SENTINEL)
             if val == SENTINEL:
                  get_missing(self, name)
+        return val
 
     __getattribute__ = __getitem__
 
