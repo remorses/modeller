@@ -2,6 +2,38 @@
 
 ## Usage
 
+You can use inheritance to create your model:
+```
+class User(modeller.Model):
+    id = ''
+    _schema = {
+        'type': 'object',
+        'properties': {
+            'name': { 'type': 'string' },
+            'id': { 'type': 'integer' },
+            'age': { 'type': 'integer' },
+        },
+        'required': [
+            'name',
+            'surname',
+        ],
+        # 'additionalProperties': False,
+    }
+
+# model will be validated after every instance
+me = User(id=01, name='Tommy', surname='Der')
+
+# you can also add additional properties
+me.state = 'Italy'
+me._validate()
+
+print(me._json())
+
+print(me._yaml())
+
+print(me.surname)
+```
+
 With the schema in `types/schema.yaml`
 ```yaml
 $schema: http://json-schema.org/schema#
@@ -18,7 +50,8 @@ required:
   - age
 ```
 
-you can load a model with automatic validation and efficent use of `__slots__`
+you can load a model with automatic validation, easy attribute access with dots and no exceptions while trying to access a property defined in the schema.
+
 ```python
 import yaml
 import modeler

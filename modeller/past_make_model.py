@@ -3,8 +3,6 @@ import fastjsonschema
 import json
 import sys
 
-
-
 def make_model(
         schema: dict,
         name: str = 'Model',
@@ -39,16 +37,15 @@ def make_model(
 
 
     # print('schema', schema)
-    elastic_identity = lambda arg=None: arg
 
     switch = {
-        'object':  make_object(schema),
-        'array':   make_array(schema),
-        'number':  elastic_identity,
-        'integer':  elastic_identity,
-        'string':  elastic_identity,
-        'boolean': elastic_identity,
-        'null': elastic_identity
+        'object':  make_object,
+        'array':   make_array,
+        'number':  make_number,
+        'integer':  make_number,
+        'string':  make_string,
+        'boolean': make_boolean,
+        'null': lambda schema: lambda x: x
     }
 
     data_types = merge_types(schema)
@@ -56,8 +53,8 @@ def make_model(
     # print(data_types)
 
     maker = fallback(
-        *[(lambda: switch[data_type], TypeError) for data_type in data_types],
-        lambda: elastic_identity
+        *[(lambda: switch[data_type](schema), TypeError) for data_type in data_types],
+        lambda: lambda x: x
     )
     # print(maker)
 
@@ -90,12 +87,15 @@ make_number = lambda schema: lambda value: value
 make_boolean = lambda schema: lambda value: value
 
 make_array = lambda schema: \
-    lambda value=[]: fallback(
+    lambda value: fallback(
         (lambda: [make_model(schema.get('items', {}))(**v) for v in value], TypeError),
         (lambda: [make_model(schema.get('items', {}))(v) for v in value],TypeError),
     )
 
 
+
+def format_slots(self):
+    return f"({', '.join([str(k) + '=' + str(self[k]) for k in [*self.__slots__, *self.__additional__.keys()] if k in self])})"
 
 
 class Meta(type):
@@ -112,28 +112,50 @@ class Meta(type):
 def throw(e):
     raise e
 
-class Model(dict, metaclass=Meta):
+class Model(metaclass=Meta):
 
     __metaclass__ = Meta
 
-    __setattr__ = dict.__setitem__
+    __setattr__ = lambda self, name, v: object.__setattr__(self, name, v) if name in self.__slots__  \
+        else self.__additional__.__setitem__(name, v)
 
-    __delattr__ = dict.__delitem__
-
-    def __getitem__(self, name):
+    def __getattribute__(self, name):
         try:
-            val = dict.get(self, name) or object.__getattribute__(self, name)
+            val = object.__getattribute__(self, name,)
         except:
-            subschema = self._schema.get('properties', {}).get(name, None)
-            if subschema is not None:
-                val = make_model(subschema)()
+            if name in self._schema.get('properties', {}):
+                _type = self._schema['properties'][name].get('type','')
+                val = make_model(self._schema['properties'][name]) if  _type == 'object' else \
+                    [] if _type == 'array' else \
+                    None
             else:
-                raise
+                class Sentinel:
+                    __slots__ = ()
+                    pass
+                val = self.__additional__.get(name, Sentinel)
+                val == Sentinel and throw(AttributeError(f'{name} not present'))
+
         return val
 
-    __getattribute__ = __getitem__
+    __delattr__ = lambda self, name: object.__delattr__(self, name,) if name in self.__slots__  \
+        else self.__additional__.__delitem__(name)
+
+    __setitem__ = __setattr__
+
+    __getitem__ = __getattribute__
+
+    __delitem__ = __delattr__
+
+    __repr__ = lambda self: f'{self.__class__.__name__}{format_slots(self)}'
+
+    __iter__ = lambda self: iter((*[x for x in self.__slots__ if x in self], *[y for y in self.__additional__ ]))
+
+    __contains__ = lambda self, x: (x in self.__slots__ or x in self.__additional__) and \
+        (silent(lambda: self[x])() or self.__additional__.get(x, False))
 
     _schema = {}
+
+    __additional__ = {}
 
     def __init__(self, **kwargs):
 
@@ -146,14 +168,12 @@ class Model(dict, metaclass=Meta):
 
         properties = schema.get('properties', {})
 
-        for k in [*kwargs.keys(),]:
-            print(k)
-            v = kwargs.get(k)
-            fallback(
-                (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(**v)), TypeError),
-                (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
-            )
-            # print(k)
+        for k, v in kwargs.items():
+                fallback(
+                    (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(**v)), TypeError),
+                    (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(v)), TypeError),
+                )
+                # print(k)
         self._on_init()
 
         # print(self.__additional__)

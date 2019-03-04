@@ -7,75 +7,44 @@ if __name__ == '__main__':
     def main():
         import modeller
 
-
-        schema = yaml.load("""
-        type: object
-        properties:
-          name:
-            type: string
-          surname:
-            type: string
-          age:
-            type: integer
-        required:
-          - name
-          - surname
-          - age
-        """)
-
-        # schema = json.load(open('tests/test.json'))
-
-        User = modeller.make_model(schema=schema,)
-
-        data = {
-            'billing_address': {
-                'street_address': 'ciao',
-                'state': 'usa',
-                'city': 'sd',
-                'code': 'boh',
-            },
-            'shipping_address': {
-                'street_address': 'asd',
-                'state': 'usa',
-                'city': 'boh',
-            }
-        }
-        # me = Model(**data)
-        me = User(name='Tommaso', surname='De Rossi', age=19)
-
-
-        print(me._json())
-
-        print()
-
         class X:
             pass
 
         class User(X, modeller.Model):
-            id = ''
             _schema = {
                 'type': 'object',
                 'properties': {
                     'name': { 'type': 'string' },
                     'id': { 'type': 'string' },
                     'age': { 'type': 'integer' },
+                    'obj': {
+                        'type': 'object',
+                        'properties': {
+                            'hey': {}
+                        }
+                    },
+                    'arr': {
+                        'type': 'array',
+                    }
                 },
                 'required': [
-                    'name',
-                    'surname',
+                    # 'name',
+                    # 'surname',
                 ],
                 # 'additionalProperties': False,
             }
 
-        me = User(id='Tommy',name='Tommy', surname='Der')
+        me = User(id='Tommy',name='Tommy', surname='Der', )
 
-        me.ciao = 'fg'
+        another = User( )
 
-        me.h = 9
+        # me.ciao = 'fg'
+        #
+        # me.h = 9
 
         print(me._yaml())
 
-        print(me.surname)
+        print(another._yaml())
 
-        me._validate()
+        # me._validate()
     main()
