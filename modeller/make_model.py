@@ -124,8 +124,8 @@ class Model(metaclass=Meta):
             val = object.__getattribute__(self, name,)
         except:
             if name in self._schema.get('properties', {}):
-                _type = self._schema['properties'].get('type','')
-                val = {} if  _type == 'object' else \
+                _type = self._schema['properties'][name].get('type','')
+                val = make_model(self._schema['properties'][name]) if  _type == 'object' else \
                     [] if _type == 'array' else \
                     None
             else:
