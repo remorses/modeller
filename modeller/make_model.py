@@ -163,11 +163,11 @@ class Model(dict, metaclass=Meta):
     _on_init = lambda self: self._validate()
 
     def _serialize(self):
-        # result = dict()
-        # for slot in self:
-        #     result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
-        # return result
-        return self
+        result = dict()
+        for slot in self:
+            result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
+        return result
+        
 
     def _json(self, indent=4):
         return json.dumps(self._serialize(), indent=indent)
