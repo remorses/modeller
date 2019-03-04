@@ -128,9 +128,10 @@ class Model(dict, metaclass=Meta):
     __delattr__ = dict.__delitem__
 
     def __getitem__(self, name):
-        return silent(lambda: object.__getattribute__(self, name))() or \
-            dict.get(self, name) or \
-            get_missing(self, name)
+        try:
+            return  object.__getattribute__(self, name)
+        except:
+            return dict.get(self, name) or get_missing(self, name)
 
     __getattribute__ = __getitem__
 
