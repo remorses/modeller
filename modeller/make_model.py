@@ -168,8 +168,10 @@ class Model(dict, metaclass=Meta):
     def _serialize(self):
         result = dict()
         for slot in self:
-            print(slot)
-            result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
+            # print(slot)
+            value = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
+            if value is not None:
+                result[slot] = value
         return result
 
 
