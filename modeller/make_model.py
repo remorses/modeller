@@ -134,7 +134,11 @@ class Model(dict, metaclass=Meta):
         except:
             val = dict.get(self, name, SENTINEL)
             if val == SENTINEL:
-                 get_missing(self, name)
+                 subschema = self._schema.get('properties', {}).get(name, None)
+                 if subschema is not None:
+                     val = make_model(subschema)()
+                 else:
+                     raise
         return val
 
     __getattribute__ = __getitem__
