@@ -112,6 +112,13 @@ class Meta(type):
 def throw(e):
     raise e
 
+def get_missing(self, name):
+    subschema = self._schema.get('properties', {}).get(name, None)
+    if subschema is not None:
+        return make_model(subschema)()
+    else:
+        raise AttributeError(f'{name} not present')
+
 class Model(dict, metaclass=Meta):
 
     __metaclass__ = Meta
@@ -121,15 +128,9 @@ class Model(dict, metaclass=Meta):
     __delattr__ = dict.__delitem__
 
     def __getitem__(self, name):
-        try:
-            val = dict.get(self, name) or object.__getattribute__(self, name)
-        except:
-            subschema = self._schema.get('properties', {}).get(name, None)
-            if subschema is not None:
-                val = make_model(subschema)()
-            else:
-                raise
-        return val
+        return silent(lambda: object.__getattribute__(self, name))() or \
+            dict.get(self, name) or \
+            get_missing(self, name)
 
     __getattribute__ = __getitem__
 
