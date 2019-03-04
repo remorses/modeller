@@ -34,7 +34,7 @@ if __name__ == '__main__':
                 # 'additionalProperties': False,
             }
 
-        me = User(id='Tommy',name='Tommy', surname='Der', )
+        me = User(id='Tommy',name='Tommy', surname='Der', external=0 )
 
         another = User( )
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
         print(me._yaml())
 
-        print(another._yaml())
+        print(another.id)
 
         # me._validate()
     main()

@@ -95,6 +95,7 @@ make_array = lambda schema: \
         (lambda: [make_model(schema.get('items', {}))(v) for v in value],TypeError),
     )
 
+SENTINEL = 'not_found'
 
 
 
@@ -131,7 +132,9 @@ class Model(dict, metaclass=Meta):
         try:
             return  object.__getattribute__(self, name)
         except:
-            return dict.get(self, name) or get_missing(self, name)
+            val = dict.get(self, name, SENTINEL)
+            if val == SENTINEL:
+                 get_missing(self, name)
 
     __getattribute__ = __getitem__
 
@@ -148,8 +151,8 @@ class Model(dict, metaclass=Meta):
 
         properties = schema.get('properties', {})
 
-        for k in [*kwargs.keys(),]:
-            print(k)
+        for k in kwargs.keys():
+            # print(k)
             v = kwargs.get(k)
             fallback(
                 (lambda: setattr(self, k, make_model(schema=properties.get(k, {}))(**v)), TypeError),
@@ -165,9 +168,10 @@ class Model(dict, metaclass=Meta):
     def _serialize(self):
         result = dict()
         for slot in self:
+            print(slot)
             result[slot] = self[slot]._serialize() if hasattr(self[slot], '_serialize') else self[slot]
         return result
-        
+
 
     def _json(self, indent=4):
         return json.dumps(self._serialize(), indent=indent)
