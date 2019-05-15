@@ -143,7 +143,7 @@ class Model(dict, metaclass=Meta):
 
     __getattribute__ = __getitem__
 
-    _validate = lambda self: None
+    _validate = lambda: None
 
     _schema = {}
 

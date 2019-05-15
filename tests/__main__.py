@@ -11,6 +11,10 @@ if __name__ == '__main__':
             pass
 
         class User( modeller.Model, X):
+
+            def test_thing(self):
+                self._validate()
+                
             _schema = {
                 'type': 'object',
                 'properties': {
