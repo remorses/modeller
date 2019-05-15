@@ -143,6 +143,8 @@ class Model(dict, metaclass=Meta):
 
     __getattribute__ = __getitem__
 
+    _validate = lambda self: None
+
     _schema = {}
 
     def __init__(self, **kwargs):

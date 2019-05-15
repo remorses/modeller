@@ -10,7 +10,7 @@ if __name__ == '__main__':
         class X:
             pass
 
-        class User(X, modeller.Model):
+        class User( modeller.Model, X):
             _schema = {
                 'type': 'object',
                 'properties': {
@@ -30,13 +30,14 @@ if __name__ == '__main__':
                 'required': [
                     # 'name',
                     # 'surname',
+                    'age'
                 ],
                 # 'additionalProperties': False,
             }
 
-        me = User(id='Tommy',name='Tommy', surname='Der', external=0 )
+        me = User(id='Tommy',name='Tommy', surname='Der', age=0, external=0 )
 
-        another = User( )
+        # another = User( )
 
         # me.ciao = 'fg'
         #
@@ -44,7 +45,7 @@ if __name__ == '__main__':
 
         print(me._yaml())
 
-        print(another.id)
+        print(me.name)
 
-        # me._validate()
+        me._validate()
     main()
