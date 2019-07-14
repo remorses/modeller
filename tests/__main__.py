@@ -10,7 +10,7 @@ if __name__ == '__main__':
         class X:
             pass
 
-        class User( modeller.Model, X):
+        class User(modeller.Model, X):
 
             def test_thing(self):
                 self._validate()
@@ -39,8 +39,9 @@ if __name__ == '__main__':
                 # 'additionalProperties': False,
             }
 
-        me = User(id='Tommy',name='Tommy', surname='Der', age=0, external=0 )
-
+        me: User = User(id='Tommy',name='Tommy', surname='Der', age=0, external=0 )
+        
+        
         # another = User( )
 
         # me.ciao = 'fg'

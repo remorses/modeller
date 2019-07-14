@@ -2,6 +2,7 @@ from .support import fallback, merge, resolve_refs, silent
 import fastjsonschema
 import json
 import sys
+import typing
 
 
 
